@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RabbitMQ Polyglot Hub</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --rabbitmq-orange: #FF6600;
+            --rabbitmq-dark: #2C3E50;
+            --bg-color: #1a1a2e;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --text-main: #ffffff;
+            --text-dim: #a0a0a0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at 10% 20%, rgba(255, 102, 0, 0.05) 0%, transparent 40%);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin: 0;
+            background: linear-gradient(45deg, var(--rabbitmq-orange), #ff9933);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: var(--text-dim);
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .input-box {
+            position: relative;
+            display: flex;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 8px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 12px 15px;
+            outline: none;
+            font-size: 15px;
+        }
+
+        button {
+            background: var(--rabbitmq-orange);
+            color: white;
+            border: none;
+            padding: 0 25px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 102, 0, 0.4);
+        }
+
+        #messages {
+            margin-top: 25px;
+            height: 350px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        /* Scrollbar Styling */
+        #messages::-webkit-scrollbar { width: 5px; }
+        #messages::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+
+        .msg-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--rabbitmq-orange);
+            animation: slideIn 0.3s ease-out;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .msg-card.python {
+            border-left-color: #3776ab;
+        }
+
+        .msg-icon {
+            font-size: 20px;
+            opacity: 0.8;
+        }
+
+        .msg-content {
+            flex: 1;
+        }
+
+        .msg-label {
+            display: block;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+        }
+
+        .msg-text {
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1><i class="fa-solid fa-circle-nodes"></i> Polyglot Hub</h1>
+        <p>RabbitMQ & Node.js & Python Real-time Bridge</p>
+    </div>
+
+    <div class="input-box">
+        <input type="text" id="taskInput" placeholder="Send a task to Python producer...">
+        <button onclick="sendTask()">Send</button>
+    </div>
+
+    <div id="messages">
+        </div>
+</div>
+
+<script>
+    const socket = io();
+    const messagesDiv = document.getElementById('messages');
+
+    // UI'dan Mesaj Gönderme
+    function sendTask() {
+        const input = document.getElementById('taskInput');
+        if(input.value.trim() !== "") {
+            const data = { task: input.value, source: 'UI' };
+            socket.emit('uiNewTask', data);
+            
+            // Kendi gönderdiğimizi de ekranda farklı renkte gösterelim
+            renderMessage(data, 'sent');
+            input.value = '';
+        }
+    }
+
+    // Mesaj Geldiğinde
+    socket.on('messageReceived', (data) => {
+        renderMessage(data, 'received');
+    });
+
+    function renderMessage(data, type) {
+        const div = document.createElement('div');
+        div.className = `msg-card ${type === 'received' ? 'python' : ''}`;
+        
+        const icon = type === 'received' ? 'fa-brands fa-python' : 'fa-solid fa-paper-plane';
+        const label = type === 'received' ? 'PYTHON\'DAN ALINDI' : 'RABBITMQ\'YA GÖNDERİLDİ';
+
+        div.innerHTML = `
+            <div class="msg-icon"><i class="${icon}"></i></div>
+            <div class="msg-content">
+                <span class="msg-label">${label}</span>
+                <span class="msg-text">${data.task}</span>
+            </div>
+        `;
+        
+        messagesDiv.prepend(div);
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,20 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  python-producer:
+    build: ./python-producer 
+    depends_on:
+      - rabbitmq
+    restart: on-failure
+
+  node-consumer:
+    build: ./consumer-node
+    ports:
+      - "3000:3000"
+    depends_on:
+      - rabbitmq
+    restart: on-failure
