@@ -32,9 +32,6 @@ rpc-broker-project/
 │   └── Dockerfile           # Python runtime environment
 └── docker-compose.yml       # Full system orchestration
 
-Here is the updated section of your **README.md**, optimized for clarity and following the exact format you requested.
-
-
 ```
 
 ## Getting Started (Zero-Install Setup)
