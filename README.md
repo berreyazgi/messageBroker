@@ -34,9 +34,10 @@ rpc-broker-project/
 
 Here is the updated section of your **README.md**, optimized for clarity and following the exact format you requested.
 
----
 
-## 🛠️ Getting Started (Zero-Install Setup)
+```
+
+## Getting Started (Zero-Install Setup)
 
 The entire stack is containerized. You only need **Docker** and **Docker Compose** installed on your machine.
 
