@@ -111,9 +111,6 @@ To maintain both languages in one IDE:
 
 ---
 
-**Would you like me to add a section on how to scale the system by running multiple instances of the Java Handler using Docker commands?**
-## Ekler
 
-Herhangi bir ek bilgi buraya gelir
 
   
